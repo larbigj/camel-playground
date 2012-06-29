@@ -1,4 +1,0 @@
-camel-playground
-================
-
-camel-playground

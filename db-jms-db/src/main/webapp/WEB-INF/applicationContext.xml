@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:camel="http://camel.apache.org/schema/spring"
+    xmlns:jee="http://www.springframework.org/schema/jee"
+    xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring
+       http://camel.apache.org/schema/spring/camel-spring.xsd
+       http://www.springframework.org/schema/jee 
+       http://www.springframework.org/schema/jee/spring-jee.xsd">
+
+    <!--
+        Simple camel route which send every one minute a message on the console.
+    -->
+    <camelContext trace="false" xmlns="http://camel.apache.org/schema/spring">
+        <routeBuilder ref="jmsRoute"/> 
+    	<route>  
+        	<from uri="hornetq:queue:testQueue2"/>
+        	<to uri="log:json"/>
+    		<bean ref="createSQLBean" method="convertToSQL"/>
+    		<to uri="log:sql"/>
+    		<to uri="jdbc:dbConnection"/>
+		</route>
+    </camelContext>
+    
+    <bean id="jmsRoute" class="net.larbig.camel.DBtoJMSRoute"/>
+  
+  <bean id="createSQLBean" class="net.larbig.camel.SQLBean"/>
+  
+  <bean id="hornetq" class="org.apache.camel.component.jms.JmsComponent">
+  	<property name="connectionFactory" ref="myConnectionFactory"/>
+  </bean>
+  
+  <bean id="sql" class="org.apache.camel.component.sql.SqlComponent">
+    <property name="dataSource" ref="dbConnection"/>
+ </bean>
+    
+  <jee:jndi-lookup id="myConnectionFactory" jndi-name="java:/ConnectionFactory"/>
+
+  <jee:jndi-lookup id="dbConnection" jndi-name="java:jboss/datasources/TestDS"/>
+
+</beans>
